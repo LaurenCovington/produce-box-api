@@ -2,6 +2,7 @@ from flask import current_app
 from app import db
 
 class NpoRep(db.Model):
+    __tablename__ = 'nporep' # SM recommended 
     employee_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     organization = db.Column(db.String(200))

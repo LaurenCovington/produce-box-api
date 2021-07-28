@@ -6,6 +6,7 @@ from .comm_res import CommRes
 from app.models import comm_res # importing the class to access the address, which should equal the delivery location here
 
 class Order(db.Model):
+    __tablename__ = 'order' # SM recommended 
     order_id = db.Column(db.Integer, primary_key=True)
     delivery_date = db.Column(db.DateTime, default=datetime.now()) # default is when the button is hit by NPO rep
     delivery_location = db.Column(db.String(200), default=CommRes.delivery_address) # should == the customer's address
@@ -13,10 +14,10 @@ class Order(db.Model):
 
 # relationship handling below - add FKs for both rel types --> DOUBLECHECK LOGIC
     # O2M w community resident
-    comm_res_id = db.Column(db.Integer, db.ForeignKey('commres.resident_id'))
+    commres_id = db.Column(db.Integer, db.ForeignKey('commres.resident_id'))
 
     # O2M w NPO rep
-    npo_rep_id = db.Column(db.Integer, db.ForeignKey('nporep.employee_id'))
+    nporep_id = db.Column(db.Integer, db.ForeignKey('nporep.employee_id'))
 
     # join table in M2M bw comm_res and offering: remaining FK accounted for
     offering_id = db.Column(db.Integer, db.ForeignKey('offering.offering_id')) # okay for var name to = actual attr name in other model?
