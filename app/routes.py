@@ -9,7 +9,6 @@ from app.models.order import OrderBox
 from app.models.farmer_contribution import FarmerContribution
 from app.models.category import Category
 
-
 from flask import request, Blueprint, make_response, jsonify, Flask 
 from datetime import datetime 
 from flask_sqlalchemy import SQLAlchemy

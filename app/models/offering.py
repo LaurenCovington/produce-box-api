@@ -7,8 +7,8 @@ class Offering(db.Model):
     offering_id = db.Column(db.Integer, primary_key=True)
     #offering_type = db.Column(db.String(50))   >>>> DONT THINK WE NEED W CATEGORY MODEL IN PLAY
     name = db.Column(db.String(100))
-    total_inventory = db.Column(db.Integer)
-    available_inventory = db.Column(db.Integer)
+    total_inventory = db.Column(db.Integer) # only farmers can affect this
+    available_inventory = db.Column(db.Integer) # only commres can affect this
     usda_organic = db.Column(db.Boolean, default=False) # flip to true if farmer hits the button
     usage_time_limit = db.Column(db.Integer, nullable=True) # how many weeks a comfrey salve can be used
     side_effects = db.Column(db.String(300), nullable=True) # let herbalists list side effects
