@@ -12,7 +12,7 @@ class Farmer(db.Model):
 
 # relationship handling below
     # M2M
-    contributions = db.relationship('Offering', secondary='FarmerContributions', backref=db.backref('contributor'), lazy=True)
+    contributions = db.relationship('Offering', secondary='farmer_contribution', backref=db.backref('contributor'), lazy=True)
 
     def json_formatted(self):
         return {

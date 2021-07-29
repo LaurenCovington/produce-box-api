@@ -9,9 +9,9 @@ class Offering(db.Model):
     offering_type = db.Column(db.String(50))
     name = db.Column(db.String(100))
     total_inventory = db.Column(db.Integer)
-    available_inventory = db.Column(db.Integer) # needs to move to join table bw Offering and Order
+    available_inventory = db.Column(db.Integer)
     usda_organic = db.Column(db.Boolean, default=False) # flip to true if farmer hits the button
-    usage_time_limit = db.Column('in_weeks', db.Integer, nullable=True) # how many weeks a comfrey salve can be used
+    usage_time_limit = db.Column(db.Integer, nullable=True) # how many weeks a comfrey salve can be used
     side_effects = db.Column(db.String(300), nullable=True) # let herbalists list side effects
 
 # relationship handling below -- dont seem to need any rel handling acc to min 20:25 at https://www.youtube.com/watch?v=OvhoYbjtiKc&t=502s&ab_channel=PrettyPrinted 

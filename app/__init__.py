@@ -27,13 +27,15 @@ def create_app(test_config=None):
     from app.models.farmer import Farmer
     from app.models.npo_rep import NpoRep
     from app.models.offering import Offering
-    from app.models.order import Order
+    from app.models.order import OrderBox
+    from app.models.farmer_contribution import FarmerContribution
 
     from .routes import comm_res_bp # NAMES!
     from .routes import farmer_bp
     from .routes import npo_rep_bp
     from .routes import offering_bp
     from .routes import order_bp
+    from .routes import farmer_contribution_bp
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -44,5 +46,6 @@ def create_app(test_config=None):
     app.register_blueprint(npo_rep_bp)
     app.register_blueprint(offering_bp)
     app.register_blueprint(order_bp)
+    app.register_blueprint(farmer_contribution_bp)
 
     return app

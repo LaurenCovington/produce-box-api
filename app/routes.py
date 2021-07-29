@@ -4,7 +4,8 @@ from app.models.comm_res import CommRes ###### class names!
 from app.models.farmer import Farmer
 from app.models.npo_rep import NpoRep
 from app.models.offering import Offering
-from app.models.order import Order
+from app.models.order import OrderBox
+from app.models.farmer_contribution import FarmerContribution
 
 from flask import request, Blueprint, make_response, jsonify, Flask 
 from datetime import datetime 
@@ -21,5 +22,6 @@ farmer_bp = Blueprint("farmers", __name__, url_prefix="/farmers")
 npo_rep_bp = Blueprint("NPO-reps", __name__, url_prefix="/npo-reps")
 offering_bp = Blueprint("offerings", __name__, url_prefix="/offerings")
 order_bp = Blueprint("orders", __name__, url_prefix="/orders")
+farmer_contribution_bp = Blueprint("contributions", __name__,url_prefix="/contributions")
 
 # endpoints begin below

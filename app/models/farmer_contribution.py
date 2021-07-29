@@ -6,8 +6,9 @@ from datetime import timedelta, datetime
 class FarmerContribution(db.Model):
     __tablename__ = 'farmer_contribution' # SM recommended 
     farm_contr_id = db.Column(db.Integer, primary_key=True)
-    harvest_date = db.Column(db.DateTime) # farmer must enter manually? get rid of and just set exp_date to 'now + 3days'? >>>> >>> moved to FarmerContrib JT
-    expiration_date = db.Column(db.DateTime, default=harvest_date + timedelta(days=7)) # or >>> exp_date = db.Column(db.DateTime, default=datetime.now()+timedelta(days=3)) >>>> >>> moved to FarmerContrib JT
+    harvest_date = db.Column(db.DateTime) # farmer must enter manually? get rid of and just set exp_date to 'now + 3days'?
+    #expiration_date = db.Column(db.DateTime, default=datetime.now()) #######
+    expiration_date = db.Column(db.DateTime, default=harvest_date + timedelta(days=7)) # or >>> exp_date = db.Column(db.DateTime, default=datetime.now()+timedelta(days=3))
     bake_date = db.Column(db.DateTime, nullable=True) # for breads 
     dried_date = db.Column(db.DateTime, nullable=True) # for herbs and teas
     make_date = db.Column(db.DateTime, nullable=True) # for herbal meds

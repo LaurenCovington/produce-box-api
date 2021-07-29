@@ -11,7 +11,7 @@ class NpoRep(db.Model):
 
 # relationship handling below
     # parent in O2M
-    deliveries = db.relationship('Order', backref='deliverer')
+    deliveries = db.relationship('order_box', backref='deliverer')
 
     def json_formatted(self):
         return {

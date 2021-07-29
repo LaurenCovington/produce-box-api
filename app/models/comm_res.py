@@ -11,10 +11,10 @@ class CommRes(db.Model):
 
 # relationship handling below
     # M2M
-    orders = db.relationship('Offering', secondary='Order', backref=db.backref('order_placer'), lazy=True) # keep backref names diff?
+    orders = db.relationship('Offering', secondary='order_box', backref=db.backref('order_placer'), lazy=True) # keep backref names diff?
 
     # parent in O2M
-    expected_deliveries = db.relationship('Order', backref='recipient')
+    expected_deliveries = db.relationship('order_box', backref='recipient')
 
     def json_formatted(self):
         return {

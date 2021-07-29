@@ -1,8 +1,8 @@
-"""72821 2nd draft of models and relationships
+"""trying w vishaal
 
-Revision ID: b8913026d3a8
+Revision ID: 19fd425437c2
 Revises: 
-Create Date: 2021-07-28 16:30:16.821010
+Create Date: 2021-07-29 13:02:24.113037
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b8913026d3a8'
+revision = '19fd425437c2'
 down_revision = None
 branch_labels = None
 depends_on = None

@@ -5,8 +5,8 @@ from datetime import timedelta, datetime
 from .comm_res import CommRes
 from app.models import comm_res # importing the class to access the address, which should equal the delivery location here
 
-class Order(db.Model):
-    __tablename__ = 'order' # SM recommended 
+class OrderBox(db.Model):
+    __tablename__ = 'order_box' # SM recommended 
     order_id = db.Column(db.Integer, primary_key=True)
     delivery_date = db.Column(db.DateTime, default=datetime.now()) # default is when the button is hit by NPO rep
     delivery_location = db.Column(db.String(200), default=CommRes.delivery_address) # should == the customer's address
