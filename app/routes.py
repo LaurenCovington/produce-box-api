@@ -25,6 +25,52 @@ offering_bp = Blueprint("offerings", __name__, url_prefix="/offerings")
 order_bp = Blueprint("orders", __name__, url_prefix="/orders")
 category_bp = Blueprint("produce-categories", __name__, url_prefix="/produce-categories")
 
+# /!\ priority 1 routes /!\
+
 # POST ROUTES
-    # farmer can post offerings BY CATEGORY ONLY - no stray carrots
-    # customer can create order box
+# farmer can post offerings BY CATEGORY ONLY - no carrots in the tea section
+@category_bp.route("/<category_id>/offerings", methods=["POST"])
+def post_offering_by_category(category_id):
+    """Allow farmers to post offering batches by category"""
+
+    #relevant_category = Category.query.get(category_id)
+    request_body = request.get_json()
+    new_offering = OfferingBatch.build_offering_from_json(request_body)
+
+    if not new_offering:
+        return make_response({"details": "Invalid data"}, 400)
+    if len(new_offering.name) <= 1:
+        return make_response({"details": "Please enter valid offering name. Must be greater than 1 character."}, 400)
+    if new_offering.total_inventory < 1:
+        return make_response({"details": "Must enter at least 1 batch of food."}, 400)
+    # if harvest_date format is incorrect, return follow this format YYYY-MM-DD
+    
+    # tag offering w relevant category id
+    new_offering.category_id = category_id
+    db.session.commit()
+    return {'offering batch': new_offering.json_formatted()}, 201
+
+# commres can create order box
+@order_bp.route("", methods=["POST"])
+def create_order():
+    """Allow community residents to create an order"""
+    # this needs to have 'Add to cart' functionality..?
+
+
+
+
+
+
+
+
+# READ ROUTES
+    # commres can see offering categories and offering batches within those categories
+    # npo can see all upcoming deliveries (GET all)
+    # npo can see the contents, delivery locations, recipient phone # of each order_box for delivery (GET single)
+    # npo can see dropoff location where farmer left foods for them to pick up -- does this make sense?
+# UPDATE ROUTES
+    # commres chooses count of each desired food (think upvote card functionality)
+    # commres edits contents of order_box (add, remove) -- add instance methods to one of the models?
+# DELETE ROUTES
+    # farmer deletes offering batches that are mistakenly posted
+    # commres deletes order (more than 24hrs out from drop time)

@@ -13,12 +13,12 @@ class OfferingBatch(db.Model):
     usage_time_limit = db.Column(db.Integer, nullable=True) # how many weeks a comfrey salve can be used
     side_effects = db.Column(db.String(300), nullable=True) # let herbalists list side effects
 
-    harvest_date = db.Column(db.DateTime) # farmer must enter manually? get rid of and just set exp_date to 'now + 3days'?
+    harvest_date = db.Column(db.DateTime) # farmer must enter manually w certain format? get rid of and just set exp_date to 'now + 3days'?
     expiration_date = db.Column(db.DateTime, default=harvest_date + timedelta(days=7)) # or >>> exp_date = db.Column(db.DateTime, default=datetime.now()+timedelta(days=3))
-    bake_date = db.Column(db.DateTime, nullable=True) # for breads 
-    dried_date = db.Column(db.DateTime, nullable=True) # for herbs and teas
-    make_date = db.Column(db.DateTime, nullable=True) # for herbal meds
-    dropoff_location = db.Column(db.String(200))
+    bake_date = db.Column(db.DateTime, nullable=True) # for breads, certain format 
+    dried_date = db.Column(db.DateTime, nullable=True) # for herbs and teas, certain format
+    make_date = db.Column(db.DateTime, nullable=True) # for herbal meds, certain format
+    dropoff_location = db.Column(db.String(200)) # selected via drop-down menu on FE
 
 # relationship handling below 
     # child in O2M w category
@@ -31,22 +31,47 @@ class OfferingBatch(db.Model):
     order_box_id = db.Column(db.Integer, db.ForeignKey('order_box.order_id'))
 
     def json_formatted(self):
+        if self.usda_organic:
+            organic_check = True
+        organic_check = False
+
         return {
             "id": self.offering_id,
-            "offering_type": self.offering_type,
             "name": self.name,
+            "harvest_date": self.harvest_date,
+            "expiration_date": self.expiration_date,
             "total_inventory": self.total_inventory,
             "available_inventory": self.available_inventory,
-            "usda_organic": self.usda_organic,
+            "usda_organic": organic_check,
+            "bake_date": self.bake_date,
+            "dried_date": self.dried_date,
+            "make_date": self.make_date,
+            "dropoff_location": self.dropoff_location,
             "usage_time_limit": self.usage_time_limit,
-            "side_effects": self.side_effects
+            "side_effects": self.side_effects,
+            "category_id": self.category_id
         }
+
+    @classmethod
+    def build_offering_from_json(cls, body):
+        new_offering = OfferingBatch(name=body['name'], 
+                                    harvest_date=body['harvest_date'],
+                                    expiration_date=body['expiration_date'],
+                                    total_inventory=body['total_inventory'],
+                                    #available_inventory=body['available_inventory'], # will be set = to total by default and edited in other logic
+                                    usda_organic=body['usda_organic'],
+                                    bake_date=body['bake_date'],
+                                    dried_date=body['dried_date'],
+                                    make_date=body['make_date'],
+                                    dropoff_location=body['dropoff_location'],
+                                    usage_time_limit=body['usage_time_limmit'],
+                                    side_effects=body['side_effects'])
+        return new_offering
 
     def update_inventory(self, total_inventory, available_inventory):
         pass
         # every time someone makes an order, adjust the available inventory count to reflect the change
 
-    # /!\ import farmer_contribution to access expiration date and make this func work; func placed here bc nothing expired should make it to the 'box' in f_c
     def remove_expired_foods(self, expiration_date): 
         pass    
         # if today's date == exp_date, adjust available inventory to exclude product(s)
