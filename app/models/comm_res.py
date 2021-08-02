@@ -9,10 +9,6 @@ class CommRes(db.Model):
     phone = db.Column(db.String(10)) # of 12 char limit for dashes in '111-111-1111'
     donations_sent = db.Column(db.Integer) # reps $ given; may not get to this
 
-# relationship handling below
-    # M2M
-    orders = db.relationship('Offering', secondary='order_box', backref=db.backref('order_placer'), lazy=True) # keep backref names diff?
-
     # parent in O2M
     expected_deliveries = db.relationship('order_box', backref='recipient')
 
@@ -23,4 +19,5 @@ class CommRes(db.Model):
             "delivery_address": self.delivery_address,
             "phone": self.phone,
             "donations_sent": self.donations_sent # may not get to this
+            # add expected_deliveries to return statement?
         }

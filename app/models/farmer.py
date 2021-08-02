@@ -11,8 +11,8 @@ class Farmer(db.Model):
     contribution_dropoff = db.Column(db.Boolean, default=False) # doesnt count as dropped till farmer hits the button on the phone
 
 # relationship handling below
-    # M2M
-    contributions = db.relationship('Offering', secondary='farmer_contribution', backref=db.backref('contributor'), lazy=True)
+    # O2M
+    contributions = db.relationship('offering_batch', backref='contributor') # or backref='farmer_id'
 
     def json_formatted(self):
         return {

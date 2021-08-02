@@ -2,20 +2,33 @@ from flask import current_app
 from app import db
 from datetime import timedelta, datetime 
 
-class Offering(db.Model):
-    __tablename__ = 'offering' # SM recommended 
+class OfferingBatch(db.Model):
+    __tablename__ = 'offering_batch' # SM recommended 
     offering_id = db.Column(db.Integer, primary_key=True)
-    #offering_type = db.Column(db.String(50))   >>>> DONT THINK WE NEED W CATEGORY MODEL IN PLAY
+
     name = db.Column(db.String(100))
     total_inventory = db.Column(db.Integer) # only farmers can affect this
-    available_inventory = db.Column(db.Integer) # only commres can affect this
+    available_inventory = db.Column(db.Integer, default=total_inventory) # only commres can affect this
     usda_organic = db.Column(db.Boolean, default=False) # flip to true if farmer hits the button
     usage_time_limit = db.Column(db.Integer, nullable=True) # how many weeks a comfrey salve can be used
     side_effects = db.Column(db.String(300), nullable=True) # let herbalists list side effects
 
+    harvest_date = db.Column(db.DateTime) # farmer must enter manually? get rid of and just set exp_date to 'now + 3days'?
+    expiration_date = db.Column(db.DateTime, default=harvest_date + timedelta(days=7)) # or >>> exp_date = db.Column(db.DateTime, default=datetime.now()+timedelta(days=3))
+    bake_date = db.Column(db.DateTime, nullable=True) # for breads 
+    dried_date = db.Column(db.DateTime, nullable=True) # for herbs and teas
+    make_date = db.Column(db.DateTime, nullable=True) # for herbal meds
+    dropoff_location = db.Column(db.String(200))
+
 # relationship handling below 
     # child in O2M w category
     category_id = db.Column(db.Integer, db.ForeignKey('category.category_id'))
+
+    # child in O2M w farmer
+    farmer_id = db.Column(db.Integer, db.ForeignKey('farmer.farmer_id'))
+
+    # child in O2M w order_box (Kaida)
+    order_box_id = db.Column(db.Integer, db.ForeignKey('order_box.order_id'))
 
     def json_formatted(self):
         return {

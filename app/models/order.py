@@ -12,15 +12,12 @@ class OrderBox(db.Model):
     delivery_location = db.Column(db.String(200), default=CommRes.delivery_address) # should == the customer's address
     handoff_type = db.Column(db.Boolean, default=False) # False is door drop, True is handed to person
 
-# relationship handling below - add FKs for both rel types --> DOUBLECHECK LOGIC
+# relationship handling below 
     # O2M w community resident
     commres_id = db.Column(db.Integer, db.ForeignKey('commres.resident_id'))
 
     # O2M w NPO rep
     nporep_id = db.Column(db.Integer, db.ForeignKey('nporep.employee_id'))
-
-    # join table in M2M bw comm_res and offering: remaining FK accounted for
-    offering_id = db.Column(db.Integer, db.ForeignKey('offering.offering_id')) # okay for var name to = actual attr name in other model?
 
     def json_formatted(self):
         return {
