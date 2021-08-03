@@ -115,14 +115,89 @@ def get_all_offerings(category_id):
     except: 
         return make_response({"details": "There are no foods under this category. "})
     return jsonify(offering_list)
-    
 
-    # npo can see all upcoming deliveries (GET all)
-    # npo can see the contents, delivery locations, recipient phone # of each order_box for delivery (GET single)
-    # npo can see dropoff location where farmer left foods for them to pick up -- does this make sense?
+# CAN'T CHECK TILL LJ HELPS WITH POST ORDER ROUTE ABOVE
+# npo can see all upcoming deliveries: contents (offering id), delivery locations, recipient phone # (via commres id) of each order_box for delivery (GET single)
+@order_bp.route("", methods=["GET"])
+def get_all_orders():
+    """Allow NPO rep to view all orders"""
+    orders = OrderBox.query.all()
+    order_list = []
+
+    for order in orders:
+        recipient = CommRes.query.get(order.commres_id)
+        recipient_phone = recipient.phone
+        order_contents = OfferingBatch.query.get(order.offering_id)
+
+        # incorrect return: how to connect all asso'd info in final view?
+        order_list.append(order.json_formatted())
+        order_list.append(recipient_phone)
+        order_list.append(order_contents)
+    return jsonify(order_list) 
+
+# npo can see farmer-side dropoff location where farmer left foods for them to pick up -- needed?
+
 # UPDATE ROUTES
-    # commres chooses count of each desired food (think upvote card functionality)
-    # commres edits contents of order_box (add, remove) -- add instance methods to one of the models?
+# commres chooses count of each desired food (think upvote card functionality)
+@offering_bp.route("/<offering_id>/choose_count", methods=["PUT"]) # click Produce > click Carrots > on page where you select how many carrots
+def choose_food_count(offering_id):
+    """Allow community resident to choose how much of each food for their order"""
+
+    selected_offering = OfferingBatch.query.get(offering_id)
+
+    if not selected_offering:
+        return make_response({"details": "No food with this ID"}, 404)
+    # need if statement: if 'up' button hit, decrease avail_inv x1/click; elif 'down' button hit, increase, else pass
+    # does avail_inv need to be the only attr that changes? should desired_count be added to one of the tables (order_box?)
+    selected_offering.available_inventory -= 1
+
+    db.session.commit()
+    return {'offering': selected_offering.json_formatted()}
+
+# commres edits contents of order_box (add, remove) -- add instance methods to one of the models?
+# delete offering from ORDER, not from DATABASE?
+# route path right?
+@offering_bp.route("/<offering_id>/remove", methods=["PUT"]) # click Produce > click Carrots > on page where you change your mind about carrots and remove them from your 'cart'
+def edit_order_contents(offering_id):
+    """Allow community resident to delete foods from their order"""
+    request_body = request.get_json() # request holds desired updated counts
+
+    offering = OfferingBatch.query.get(offering_id)
+    
+    if not offering:
+        return make_response({"details": "Invalid ID"}, 404)
+    # if they hit some UI-side 'remove' button, set the asso'd order id to null, adjust offering avail_inv back to pre-choice count
+    if offering.available_inventory != 0: # filler logic...
+        offering.order_box_id = None
+        offering.available_inventory = offering.total_inventory # correct? how to set to pre-choice count?
+
+    db.session.add(offering) # re-submit edited offering
+    db.session.commit()
+    return {"details": f"Food with ID #{offering_id} has been deleted from your order."}
+
 # DELETE ROUTES
-    # farmer deletes offering batches that are mistakenly posted
-    # commres deletes order (more than 24hrs out from drop time)
+
+# farmer deletes offering batches that are mistakenly posted (must delete w/i cateogry)
+@category_bp.route("/<category_id>/offerings/<offering_id>", methods=["DELETE"])
+def delete_offering(offering_id):
+    """Allow farmer to delete offering batch that is mistakenly posted"""
+    offering = OfferingBatch.query.get(offering_id)
+    if offering is None:
+        return make_response({"details": "No food logged with that ID"}, 404)
+
+    db.session.delete(offering)
+    db.session.commit()
+    return {"details": f"Offering batch with ID #{offering_id} has been deleted from the database."}
+
+# commres deletes order (more than 24hrs out from drop time)
+# cant test till LJ fix
+@order_bp.route("/<order_id>", methods=["DELETE"])
+def delete_order(order_id):
+    """Allow community resident to delete entire order if they've changed their mind"""
+    order = OrderBox.query.get(order_id)
+    if order is None:
+        return make_response({"details": "No order with that ID"}, 404)
+
+    db.session.delete(order)
+    db.session.commit()
+    return {"details": f"Order with ID #{order_id} has been deleted. No delivery this week!"}

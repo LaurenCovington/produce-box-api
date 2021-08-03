@@ -10,7 +10,7 @@ class OrderBox(db.Model):
     order_id = db.Column(db.Integer, primary_key=True)
     delivery_date = db.Column(db.DateTime, default=datetime.now()) # default is when the button is hit by NPO rep
     delivery_location = db.Column(db.String(200), default=CommRes.delivery_address) # should == the customer's address
-    handoff_type = db.Column(db.Boolean, default=False) # False is door drop, True is handed to person
+    handoff_type = db.Column(db.Boolean, default=False, nullable=True) # False is door drop, True is handed to person; nullable in case hasnt been delivered yet (is this the only marker of upcoming delivery?)
 
 # relationship handling below 
     # O2M w community resident
