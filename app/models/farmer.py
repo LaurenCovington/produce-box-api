@@ -12,7 +12,7 @@ class Farmer(db.Model):
 
 # relationship handling below
     # O2M
-    contributions = db.relationship('offering_batch', backref='contributor') # or backref='farmer_id'
+    contributions = db.relationship('OfferingBatch', backref='contributor') # or backref='farmer_id'
 
     def json_formatted(self):
         return {

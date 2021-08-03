@@ -8,4 +8,10 @@ class Category(db.Model):
 
 # relationship handling below
     # parent in O2M w offering
-    produce_types = db.relationship('offering', backref='category_id')
+    associated_foods = db.relationship('OfferingBatch', backref='assod_category', lazy=True) # was '...backref='category_id')'
+
+    def json_formatted(self):
+        return {
+            "id": self.category_id, 
+            "category": self.category_title
+        }

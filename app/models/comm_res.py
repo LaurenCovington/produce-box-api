@@ -10,7 +10,7 @@ class CommRes(db.Model):
     donations_sent = db.Column(db.Integer) # reps $ given; may not get to this
 
     # parent in O2M
-    expected_deliveries = db.relationship('order_box', backref='recipient')
+    expected_deliveries = db.relationship('OrderBox', backref='recipient') # first arg in relationship() should be CLASS NAME, NOT TABLE NAME (stack overflow)
 
     def json_formatted(self):
         return {

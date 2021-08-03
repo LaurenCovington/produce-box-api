@@ -1,8 +1,8 @@
-"""round 3 erds and models attempt
+"""more errors
 
-Revision ID: a1b06b108a51
+Revision ID: f0b31a7eb2db
 Revises: 
-Create Date: 2021-08-02 12:04:37.522024
+Create Date: 2021-08-02 21:43:19.436926
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a1b06b108a51'
+revision = 'f0b31a7eb2db'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -67,7 +67,7 @@ def upgrade():
     sa.Column('usda_organic', sa.Boolean(), nullable=True),
     sa.Column('usage_time_limit', sa.Integer(), nullable=True),
     sa.Column('side_effects', sa.String(length=300), nullable=True),
-    sa.Column('harvest_date', sa.DateTime(), nullable=True),
+    sa.Column('contribution_date', sa.DateTime(), nullable=True),
     sa.Column('expiration_date', sa.DateTime(), nullable=True),
     sa.Column('bake_date', sa.DateTime(), nullable=True),
     sa.Column('dried_date', sa.DateTime(), nullable=True),
