@@ -65,6 +65,9 @@ def create_app(test_config=None):
     from .routes import order_bp
     from .routes import category_bp
     from .routes import user_bp
+    
+    # https://www.youtube.com/watch?v=dam0GPOAvVI&ab_channel=TechWithTim 
+    from .auth import auth
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -77,5 +80,8 @@ def create_app(test_config=None):
     app.register_blueprint(order_bp)
     app.register_blueprint(category_bp)
     app.register_blueprint(user_bp)
+
+    # https://www.youtube.com/watch?v=dam0GPOAvVI&ab_channel=TechWithTim 
+    app.register_blueprint(auth)
 
     return app
