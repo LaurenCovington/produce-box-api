@@ -23,3 +23,21 @@ As a comm res, I want to be able to delete foods from my cart so that I'm free t
 
 - How to delete something from a specific order but not from the whole database?
   - Vishaal and Bri: toggle related ID to null to break the association without deleting from database
+
+
+
+Inventory table - total counts of each type of produce, counts will adjust acc to who's choosing what 
+- determine which offering_batches are deducted when orders are placed
+
+
+# 8/5/21
+- LJ: get the simplest transactions working first.
+
+
+# SM, 8.6.21
+Profile table (grab bag but lots of nullable values)
+    - 
+    - address (diff meanings depending on user role)
+
+- User table: common attrs, foreign keys for user types (FKs point to profile table)
+- each user has 3 diff foreign key fields (that point to commres, farmer and nporep profile types)

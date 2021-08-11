@@ -1,3 +1,4 @@
+# not changed
 from flask import current_app
 from app import db
 
@@ -5,6 +6,8 @@ class Farmer(db.Model):
     __tablename__ = 'farmer' # SM recommended 
     farmer_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
+    username = db.Column(db.String(50)) # actual username
+    password = db.Column(db.String(50), nullable=False)
     farm_location = db.Column(db.String(200))
     phone = db.Column(db.String(10)) # of 12 char limit for dashes in '111-111-1111'
     donations_received = db.Column(db.Integer) # reps $ given; may not get to this

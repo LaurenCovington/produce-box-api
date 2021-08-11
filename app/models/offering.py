@@ -1,3 +1,4 @@
+# changed
 from flask import current_app
 from app import db
 from datetime import timedelta, datetime 
@@ -29,8 +30,8 @@ class OfferingBatch(db.Model):
     # child in O2M w farmer
     farmer_id = db.Column(db.Integer, db.ForeignKey('farmer.farmer_id'))
 
-    # child in O2M w order_box (Kaida)
-    order_box_id = db.Column(db.Integer, db.ForeignKey('order_box.order_id'))
+    # child in O2M w order_box (Kaida) //// hold off for now (LJ)
+    #order_box_id = db.Column(db.Integer, db.ForeignKey('order_box.order_id'))
 
     def json_formatted(self):
         if self.usda_organic:
@@ -51,11 +52,12 @@ class OfferingBatch(db.Model):
             "dropoff_location": self.dropoff_location,
             "usage_time_limit": self.usage_time_limit,
             "side_effects": self.side_effects,
-            "category_id": self.category_id
+            "category_id": self.category_id,
+            "farmer_id": self.farmer_id
         }
 
     @classmethod
-    def build_offering_from_json(cls, body):
+    def build_offering_from_json(cls, body): # stuff the farmer is supposed to enter
         new_offering = OfferingBatch(name=body['name'], 
                                     contribution_date=body['contribution_date'],
                                     expiration_date=body['expiration_date'], # GETTING NULL IN POSTMAN WHEN SHOULD BE GETTING DEFAULT VAL... farmer must enter 'null'/leave field blank and then code will assign default value
@@ -81,3 +83,7 @@ class OfferingBatch(db.Model):
     def toggle_organic(self, usda_organic):
         pass
         # flip default=False to ""=True when farmer hits the button
+
+    def none_left(self):
+        pass
+    # if total_inv = 0, remove from db
