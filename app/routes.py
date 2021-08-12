@@ -1,11 +1,10 @@
 from typing import final
 from flask.helpers import url_for
+import jwt
 from werkzeug.utils import redirect
 from app import create_app, db
+import app
 
-#from app.models.comm_res import CommRes
-#from app.models.farmer import Farmer
-#from app.models.npo_rep import NpoRep
 from app.models.offering import OfferingBatch
 from app.models.order import OrderBox
 from app.models.category import Category
@@ -33,73 +32,100 @@ from flask_jwt_extended import JWTManager
 
 load_dotenv()
 
-#comm_res_bp = Blueprint("community-members", __name__, url_prefix="/community-members")
-#farmer_bp = Blueprint("farmers", __name__, url_prefix="/farmers")
-#npo_rep_bp = Blueprint("NPO-reps", __name__, url_prefix="/npo-reps")
 offering_bp = Blueprint("offerings", __name__, url_prefix="/offerings")
 order_bp = Blueprint("orders", __name__, url_prefix="/orders")
 category_bp = Blueprint("food-categories", __name__, url_prefix="/food-categories")
 authorize_bp = Blueprint("auth", __name__, url_prefix="/")
 user_bp = Blueprint("users", __name__, url_prefix="/users")
 offering_order_bp = Blueprint("offering_orders", __name__, url_prefix="/order-contents") # need?
+token_bp = Blueprint("token", __name__, url_prefix="/token") # pba.com/token
 
-# create acct endpoint
-    # take in sign up info 
-    # if they hit 'farmer' instantiate that obj, etc 
-    # return completed new obj
+# create acct endpoint: take in sign up info; if they hit 'farmer' instantiate that obj, etc; return completed new obj
 
-@authorize_bp.route("/register", methods=["GET"])
-def register_account():
-    redirect = url_for('auth.auth', _external=True)
-    return create_app.oauth.google.authorize_redirect(redirect) # was 'oauth_config.oauth.google.authorize_redirect(redirect)'
-
-
-@authorize_bp.route("/authorizeRegister", methods=["GET"]) # check w FE server running
-def auth_register():
-    token = create_app.oauth.google.authorize_access_token() # was 'oauth_config.oauth.google....'
-    user = create_app.oauth.google.parse_id_token(token) # ""
-
-    print(user.username) # testing that user's valid; will prob change based on choice to do User tables v commrse/nporep/farmer tables
-    
-    existing_users = db.session.query(User).filter(User.username == user.username).all() # User as in user object, user as in var a couple lines above
-
-    if len(existing_users) > 0:
-        return redirect('/') # parameter!! where should i redirect to?
-    
-    user = User.build_user_from_json()
-    db.session.add(user)
-
-    login_user(user)
-    return redirect('/app') # parameter!! where should i redirect to?
-
-@authorize_bp.route("/auth")
-def auth():
-    token = create_app.oauth.google.authorize_access_token() # was 'oauth_config.oauth.google.authorize_access_token()'
-    user = create_app.oauth.google.parse_id_token(token) # was 'oauth_config.oauth.google.parse_id_token(token)'
-
-    existing_users = db.session.query(User).filter(User.username == user.username).all()
-    if len(existing_users) == 0:
-        raise "Customer does not exist in the database."
-    login_user(existing_users[0]) # log in the first queried entry
-    return redirect('/app') # parameter!! where should i redirect to?
-
-# login endpoint:
-    # take in username and account type + send to different landing pages depending on who they are (FE logic will send to correct page)
-    # this endpoint confirms that theyre in the db and returns their obj if they are
-@authorize_bp.route('/login')
+# create a token w 1hrtut
+@token_bp.route("", methods=["POST"]) # pba.com/token
 def login():
-    oauth = current_app.extensions['authlib.integrations.flask_client']
-    google = oauth.create_client('google') 
-    redirect_uri = url_for('authorize', _external=True)
-    return google.authorize_redirect(redirect_uri) 
+    email = request.json.get("email", None) # was ("username",...)
+    password = request.json.get("password", None)
 
-# logout endpoint
-@authorize_bp.route("/logout")
-@login_required
-def logout():
-    session.pop('user', None)
-    logout_user()
-    return redirect('app') # parameter!! where should i redirect to?
+    if email != "test" or password != "test": # when testing the api, use these vals but know that you can change this logic at any time
+        return jsonify({"msg": "Bad email or password"}), 401
+    access_token = create_access_token(identity=email) # long unhackable value is created by c_a_t func and stored in access_token
+    return jsonify(access_token=access_token)
+
+
+# /!\ DEMO NOTE: see how jwt required decorator prevents web pages from being seen unless the person's logged in!! put dec on real routes
+# tut guy used samed bp as login blueprint btw
+@token_bp.route("/hello", methods=["GET"]) # pba.com/hello
+@jwt_required
+def see_hello_inside_app():
+    email = get_jwt_identity # the 'Lauren' in 'Hi, Lauren!' when Lauren logs in; works off of line 53!
+    for_return = {
+        "message": "If you can see this, you're logged in! Welcome, " + email # min 1:12:00 in https://www.youtube.com/watch?v=8-W2O_R95Pk&t=4065s&ab_channel=BreatheCode
+    }
+    return jsonify(for_return)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        # # 11min tut
+        # @authorize_bp.route("/register", methods=["GET"])
+        # def register_account():
+        #     redirect = url_for('auth.auth', _external=True)
+        #     return create_app.oauth.google.authorize_redirect(redirect) # was 'oauth_config.oauth.google.authorize_redirect(redirect)'
+
+
+        # @authorize_bp.route("/authorizeRegister", methods=["GET"]) # check w FE server running
+        # def auth_register():
+        #     token = create_app.oauth.google.authorize_access_token() # was 'oauth_config.oauth.google....'
+        #     user = create_app.oauth.google.parse_id_token(token) # ""
+
+        #     print(user.username) # testing that user's valid; will prob change based on choice to do User tables v commrse/nporep/farmer tables
+            
+        #     existing_users = db.session.query(User).filter(User.username == user.username).all() # User as in user object, user as in var a couple lines above
+
+        #     if len(existing_users) > 0:
+        #         return redirect('/') # parameter!! where should i redirect to?
+            
+        #     user = User.build_user_from_json()
+        #     db.session.add(user)
+
+        #     login_user(user)
+        #     return redirect('/app') # parameter!! where should i redirect to?
+
+        # @authorize_bp.route("/auth")
+        # def auth():
+        #     token = create_app.oauth.google.authorize_access_token() # was 'oauth_config.oauth.google.authorize_access_token()'
+        #     user = create_app.oauth.google.parse_id_token(token) # was 'oauth_config.oauth.google.parse_id_token(token)'
+
+        #     existing_users = db.session.query(User).filter(User.username == user.username).all()
+        #     if len(existing_users) == 0:
+        #         raise "Customer does not exist in the database."
+        #     login_user(existing_users[0]) # log in the first queried entry
+        #     return redirect('/app') # parameter!! where should i redirect to?
+
+        # # login endpoint:
+        #     # take in username and account type + send to different landing pages depending on who they are (FE logic will send to correct page)
+        #     # this endpoint confirms that theyre in the db and returns their obj if they are
+        # @authorize_bp.route('/login')
+        # def login():
+        #     oauth = current_app.extensions['authlib.integrations.flask_client']
+        #     google = oauth.create_client('google') 
+        #     redirect_uri = url_for('authorize', _external=True)
+        #     return google.authorize_redirect(redirect_uri) 
+
+        # # logout endpoint
+        # @authorize_bp.route("/logout")
+        # @login_required
+        # def logout():
+        #     session.pop('user', None)
+        #     logout_user()
+        #     return redirect('app') # parameter!! where should i redirect to?
 
 
 
@@ -145,33 +171,33 @@ def view_categories():
         hold_categories.append(category.json_formatted())
     return jsonify(hold_categories)
 
-# update/edit a category
-@category_bp.route("/<category_id>", methods=["PUT"]) 
-def update_category(category_id):
-    """Edit a category"""
+# # update/edit a category
+# @category_bp.route("/<category_id>", methods=["PUT"]) 
+# def update_category(category_id):
+#     """Edit a category"""
 
-    category = Category.query.get(category_id)
+#     category = Category.query.get(category_id)
 
-    if not category:
-        return make_response({"details": "No category by that ID"}, 404)
-    request_body = request.get_json()
-    category.category_title = request_body["category_title"]
+#     if not category:
+#         return make_response({"details": "No category by that ID"}, 404)
+#     request_body = request.get_json()
+#     category.category_title = request_body["category_title"]
 
-    db.session.commit()
-    return {'category': category.json_formatted()}
+#     db.session.commit()
+#     return {'category': category.json_formatted()}
 
-# delete a category
-@category_bp.route("/<category_id>", methods=["DELETE"]) 
-def delete_category(category_id):
-    """Delete a category"""
+# # delete a category
+# @category_bp.route("/<category_id>", methods=["DELETE"]) 
+# def delete_category(category_id):
+#     """Delete a category"""
 
-    category = Category.query.get(category_id)
+#     category = Category.query.get(category_id)
 
-    if not category:
-        return make_response({"details": "No category by that ID"}, 404)
-    db.session.delete(category)
-    db.session.commit()
-    return make_response({"details": f"Category '{category.category_title}' deleted."})
+#     if not category:
+#         return make_response({"details": "No category by that ID"}, 404)
+#     db.session.delete(category)
+#     db.session.commit()
+#     return make_response({"details": f"Category '{category.category_title}' deleted."})
 
 # farmer must post offerings via category
 @category_bp.route("/<category_id>/offerings", methods=["POST"]) 
