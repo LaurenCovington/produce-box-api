@@ -2,18 +2,18 @@
 from flask import current_app
 from app import db
 from datetime import timedelta, datetime 
-from .comm_res import CommRes # importing the class to access the address, which should equal the delivery location here
+from .user import User # importing the class to access the address, which should equal the delivery location here
 
 class OrderBox(db.Model):
     __tablename__ = 'order_box' # SM recommended 
     order_id = db.Column(db.Integer, primary_key=True)
     delivery_date = db.Column(db.DateTime, default=datetime.now()) # default is when the 'ready to deliver' button is hit by NPO rep
-    delivery_location = db.Column(db.String(200), default=CommRes.delivery_address) # should == the customer's address
+    delivery_location = db.Column(db.String(200), default=User.address) # should == the customer's address
     handoff_type = db.Column(db.Boolean, default=False, nullable=True) # False is door drop, True is handed to person; nullable in case hasnt been delivered yet (is this the only marker of upcoming delivery?)
 
 # relationship handling below 
     #  W User IN PLAY
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.user_id'))
                             # # O2M w community resident
                             # commres_id = db.Column(db.Integer, db.ForeignKey('commres.resident_id'))
 

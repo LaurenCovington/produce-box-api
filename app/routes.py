@@ -1,18 +1,16 @@
 from typing import final
-
 from flask.helpers import url_for
 from werkzeug.utils import redirect
 from app import create_app, db
-# from app.models import category # why are these here when they're also below?
-# from app.models import offering 
 
-from app.models.comm_res import CommRes
-from app.models.farmer import Farmer
-from app.models.npo_rep import NpoRep
+#from app.models.comm_res import CommRes
+#from app.models.farmer import Farmer
+#from app.models.npo_rep import NpoRep
 from app.models.offering import OfferingBatch
 from app.models.order import OrderBox
 from app.models.category import Category
 from app.models.user import User ###############
+from app.models.offering_order import OfferingOrder ###############
 
 from flask import request, Blueprint, make_response, jsonify, Flask, current_app  
 from datetime import datetime 
@@ -27,16 +25,23 @@ from authlib.integrations.flask_client import OAuth # had to `pip install authli
 from flask_login import login_required, login_user, logout_user 
 from flask import url_for, render_template
 
+# yellow underline by objs recognized elswhere on the page
+from flask_jwt_extended import create_access_token # pip installed flask-jwt-extended in actual project file
+from flask_jwt_extended import get_jwt_identity # all taken from docs: https://flask-jwt-extended.readthedocs.io/en/stable/basic_usage/
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
+
 load_dotenv()
 
-comm_res_bp = Blueprint("community-members", __name__, url_prefix="/community-members")
-farmer_bp = Blueprint("farmers", __name__, url_prefix="/farmers")
-npo_rep_bp = Blueprint("NPO-reps", __name__, url_prefix="/npo-reps")
+#comm_res_bp = Blueprint("community-members", __name__, url_prefix="/community-members")
+#farmer_bp = Blueprint("farmers", __name__, url_prefix="/farmers")
+#npo_rep_bp = Blueprint("NPO-reps", __name__, url_prefix="/npo-reps")
 offering_bp = Blueprint("offerings", __name__, url_prefix="/offerings")
 order_bp = Blueprint("orders", __name__, url_prefix="/orders")
 category_bp = Blueprint("food-categories", __name__, url_prefix="/food-categories")
 authorize_bp = Blueprint("auth", __name__, url_prefix="/")
 user_bp = Blueprint("users", __name__, url_prefix="/users")
+offering_order_bp = Blueprint("offering_orders", __name__, url_prefix="/order-contents") # need?
 
 # create acct endpoint
     # take in sign up info 
@@ -126,6 +131,48 @@ def create_categories():
     db.session.commit()
     return {"category": new_category.json_formatted()}, 201
 
+# user must be able to view categories
+@category_bp.route("", methods=["GET"]) # must be able to create them at '...com/food-categories'
+def view_categories():
+    """Allow user to see categories"""
+    hold_categories = []
+    categories = Category.query.all()
+
+    if not categories:
+        return jsonify(hold_categories)
+    
+    for category in categories:
+        hold_categories.append(category.json_formatted())
+    return jsonify(hold_categories)
+
+# update/edit a category
+@category_bp.route("/<category_id>", methods=["PUT"]) 
+def update_category(category_id):
+    """Edit a category"""
+
+    category = Category.query.get(category_id)
+
+    if not category:
+        return make_response({"details": "No category by that ID"}, 404)
+    request_body = request.get_json()
+    category.category_title = request_body["category_title"]
+
+    db.session.commit()
+    return {'category': category.json_formatted()}
+
+# delete a category
+@category_bp.route("/<category_id>", methods=["DELETE"]) 
+def delete_category(category_id):
+    """Delete a category"""
+
+    category = Category.query.get(category_id)
+
+    if not category:
+        return make_response({"details": "No category by that ID"}, 404)
+    db.session.delete(category)
+    db.session.commit()
+    return make_response({"details": f"Category '{category.category_title}' deleted."})
+
 # farmer must post offerings via category
 @category_bp.route("/<category_id>/offerings", methods=["POST"]) 
 def post_offering_by_category(category_id):
@@ -153,6 +200,65 @@ def post_offering_by_category(category_id):
         hold_offering_ids.append(offering.offering_id)
     db.session.commit()
     return {'offering': new_offering.json_formatted()}, 201 
+
+# user must be able to view offerings (by category only) /// see all herbs offered
+@category_bp.route("/<category_id>/offerings", methods=["GET"]) 
+def view_offerings():
+    """Allow user to see offerings"""
+    hold_offerings = []
+    offerings = OfferingBatch.query.all()
+
+    if not offerings:
+        return jsonify(hold_offerings)
+    
+    for offering in offerings:
+        hold_offerings.append(offering.json_formatted())
+    return jsonify(hold_offerings)
+
+
+# ???? user must be able to view single offerings (by category only) /// click carrot bach # 1 
+@category_bp.route("/<category_id>/offerings/<offering_id>", methods=["GET"]) 
+def view_single_offering(offering_id):
+    """Allow user to see a specific offering batch"""
+    offering = OfferingBatch.query.get(offering_id)
+
+    if not offering:
+        return make_response({"details": "No offering by that ID."}, 404)
+    return {'offering': offering.json_formatted()}, 201 
+
+
+# update/edit a category
+@category_bp.route("/<category_id>", methods=["PUT"]) 
+def update_category(category_id):
+    """Edit a category"""
+
+    category = Category.query.get(category_id)
+
+    if not category:
+        return make_response({"details": "No category by that ID"}, 404)
+    
+    request_body = request.get_json()
+    category.category_title = request_body["category_title"]
+
+    db.session.commit()
+    return {'category': category.json_formatted()}
+
+# delete a category
+@category_bp.route("/<category_id>", methods=["DELETE"]) 
+def delete_category(category_id):
+    """Delete a category"""
+
+    category = Category.query.get(category_id)
+
+    if not category:
+        return make_response({"details": "No category by that ID"}, 404)
+    
+    db.session.delete(category)
+    db.session.commit()
+    return make_response({"details": f"Category '{category.category_title}' deleted."})
+
+
+
 
 # customer must be able to create/post an order w contents, delivery address, phone number
 @order_bp.route("", methods=["POST"]) # must be created at '...com/orders'

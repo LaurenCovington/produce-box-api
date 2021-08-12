@@ -11,6 +11,11 @@ from flask_login import LoginManager
 import os
 from datetime import timedelta
 
+from flask_jwt_extended import create_access_token # pip installed flask-jwt-extended in actual project file
+from flask_jwt_extended import get_jwt_identity # all taken from docs: https://flask-jwt-extended.readthedocs.io/en/stable/basic_usage/
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
+
 db = SQLAlchemy()
 migrate = Migrate()
 load_dotenv()
@@ -50,38 +55,41 @@ def create_app(test_config=None):
             "SQLALCHEMY_TEST_DATABASE_URI")
 
     # Import models here for Alembic setup
-    from app.models.comm_res import CommRes
-    from app.models.farmer import Farmer
-    from app.models.npo_rep import NpoRep
+    #from app.models.comm_res import CommRes   >>>> commented out 8.10.21 to make room for User
+    #from app.models.farmer import Farmer   >>>> ""
+    #from app.models.npo_rep import NpoRep  >>>> ""
     from app.models.offering import OfferingBatch
     from app.models.order import OrderBox
     from app.models.category import Category
     from app.models.user import User
+    from app.models.offering_order import OfferingOrder
 
-    from .routes import comm_res_bp
-    from .routes import farmer_bp
-    from .routes import npo_rep_bp
+    #from .routes import comm_res_bp
+    #from .routes import farmer_bp
+    #from .routes import npo_rep_bp
     from .routes import offering_bp
     from .routes import order_bp
     from .routes import category_bp
     from .routes import user_bp
+    from .routes import offering_order_bp
     
     # https://www.youtube.com/watch?v=dam0GPOAvVI&ab_channel=TechWithTim 
-    from .auth import auth
+    #from .auth import auth
 
     db.init_app(app)
     migrate.init_app(app, db)
 
     # Register Blueprints here
-    app.register_blueprint(comm_res_bp)
-    app.register_blueprint(farmer_bp)
-    app.register_blueprint(npo_rep_bp)
+    #app.register_blueprint(comm_res_bp)
+    #app.register_blueprint(farmer_bp)
+    #app.register_blueprint(npo_rep_bp)
     app.register_blueprint(offering_bp)
     app.register_blueprint(order_bp)
     app.register_blueprint(category_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(offering_order_bp)
 
     # https://www.youtube.com/watch?v=dam0GPOAvVI&ab_channel=TechWithTim 
-    app.register_blueprint(auth)
+    #app.register_blueprint(auth)
 
     return app

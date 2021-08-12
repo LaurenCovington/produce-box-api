@@ -24,11 +24,15 @@ class OfferingBatch(db.Model):
     dropoff_location = db.Column(db.String(200)) # selected via drop-down menu on FE
 
 # relationship handling below 
+
     # child in O2M w category
     category_id = db.Column(db.Integer, db.ForeignKey('category.category_id'))
 
+    # farmer rel (child in O2M w farmer) in terms of User
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.user_id'))
+    
     # child in O2M w farmer
-    farmer_id = db.Column(db.Integer, db.ForeignKey('farmer.farmer_id'))
+    #farmer_id = db.Column(db.Integer, db.ForeignKey('farmer.farmer_id'))
 
     # child in O2M w order_box (Kaida) //// hold off for now (LJ)
     #order_box_id = db.Column(db.Integer, db.ForeignKey('order_box.order_id'))
@@ -53,7 +57,7 @@ class OfferingBatch(db.Model):
             "usage_time_limit": self.usage_time_limit,
             "side_effects": self.side_effects,
             "category_id": self.category_id,
-            "farmer_id": self.farmer_id
+            "user_id": self.user_id
         }
 
     @classmethod
