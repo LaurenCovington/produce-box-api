@@ -8,6 +8,7 @@ class User(db.Model):
     user_type = db.Column(db.String(20), nullable=False) # value would = 'farmer', 'community resident' or 'nporep'
 
     preferred_name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(50)) 
     username = db.Column(db.String(50), nullable=False)
     password = db.Column(db.String(50), nullable=False)
     address = db.Column(db.String(200), nullable=False) # commres addr, farm addr, or delivery addr depending on user_type
@@ -34,6 +35,7 @@ class User(db.Model):
             "id": self.user_id,
             "user_type": self.user_type,
             "preferred_name": self.preferred_name,
+            "email": self.email,
             "username": self.username,
             "phone": self.phone,
             "donations_sent": self.donations_sent, # may not get to this
@@ -43,7 +45,22 @@ class User(db.Model):
             # del_ct
             # add expected_deliveries to return statement?
         }
-
+    
+    @classmethod
+    def build_user_from_json(cls, body): # stuff the farmer is supposed to enter
+        new_user = User(name=body['name'], 
+                        email=body['email'],
+                        user_type=body['user_type'],
+                        username=body['username'], 
+                        password=body['password'],
+                        address=body['address'],
+                        phone=body['phone'],
+                        contribution_dropoff=body['contribution_dropoff'],
+                        donations_sent=body['donations_sent'],
+                        donations_received=body['donations_received'],
+                        organization=body['organization'],
+                        delivery_count=body['delivery_count'])
+        return new_user
 
 
     # build db based on what info's relevant

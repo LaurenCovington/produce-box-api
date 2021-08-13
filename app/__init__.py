@@ -24,8 +24,7 @@ load_dotenv()
 #@login_required # placed here?
 def create_app(test_config=None):
     app = Flask(__name__)
-    # 1hr tut
-    # set up JWT extension
+    # 1hr tut: set up JWT extension
     jwt = JWTManager(app)
     app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET")  # Change this! >> move to __init__ file later; add this var to .env
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -57,17 +56,10 @@ def create_app(test_config=None):
     from .routes import user_bp
     from .routes import offering_order_bp
     from .routes import token_bp ################ for tut
-    
-    # https://www.youtube.com/watch?v=dam0GPOAvVI&ab_channel=TechWithTim 
-    #from .auth import auth
 
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # Register Blueprints here
-    #app.register_blueprint(comm_res_bp)
-    #app.register_blueprint(farmer_bp)
-    #app.register_blueprint(npo_rep_bp)
     app.register_blueprint(offering_bp)
     app.register_blueprint(order_bp)
     app.register_blueprint(category_bp)
@@ -75,14 +67,11 @@ def create_app(test_config=None):
     app.register_blueprint(offering_order_bp)
     app.register_blueprint(token_bp) ################### for tut
 
-    # https://www.youtube.com/watch?v=dam0GPOAvVI&ab_channel=TechWithTim 
-    #app.register_blueprint(auth)
-
     return app
 
 
 
-# 11min tut
+# jared says no...
         # # Session config
         # app.secret_key = os.getenv("APP_SECRET_KEY")
         # app.config['SESSION_COOKIE_NAME'] = 'google-login-session' # 

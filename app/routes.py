@@ -24,7 +24,6 @@ from authlib.integrations.flask_client import OAuth # had to `pip install authli
 from flask_login import login_required, login_user, logout_user 
 from flask import url_for, render_template
 
-# yellow underline by objs recognized elswhere on the page
 from flask_jwt_extended import create_access_token # pip installed flask-jwt-extended in actual project file
 from flask_jwt_extended import get_jwt_identity # all taken from docs: https://flask-jwt-extended.readthedocs.io/en/stable/basic_usage/
 from flask_jwt_extended import jwt_required
@@ -43,7 +42,7 @@ token_bp = Blueprint("token", __name__, url_prefix="/token") # pba.com/token
 # create acct endpoint: take in sign up info; if they hit 'farmer' instantiate that obj, etc; return completed new obj
 
 # create a token w 1hrtut
-@token_bp.route("", methods=["POST"]) # pba.com/token
+@token_bp.route("", methods=["GET"]) # pba.com/token;;; was "POST"
 def login():
     email = request.json.get("email", None) # was ("username",...)
     password = request.json.get("password", None)
@@ -66,7 +65,18 @@ def see_hello_inside_app():
     return jsonify(for_return)
         
         
-        
+@user_bp.route("", methods=["POST"]) # correct bp?
+def create_user():
+    """FE logic to hit this endpoint and create a user in BE db"""
+    request_body = request.get_json()
+
+    if ("name" not in request_body) and ("email" not in request_body) and ("user_type" not in request_body) and ("username" not in request_body)\
+        ("password" not in request_body) and ("address" not in request_body) and ("phone" not in request_body):
+        return make_response({"details": "Enter valid data for all fields"}, 400) # msg should be more specific 
+    new_user = User.build_user_from_json(request_body)
+    db.session.add(new_user)
+    db.session.commit()
+    return {"user": new_user.json_formatted()}, 201
         
         
         
@@ -126,21 +136,6 @@ def see_hello_inside_app():
         #     session.pop('user', None)
         #     logout_user()
         #     return redirect('app') # parameter!! where should i redirect to?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # categories must exist
