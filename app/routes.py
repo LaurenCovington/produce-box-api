@@ -57,6 +57,7 @@ def login():
 @user_bp.route("", methods=["POST"]) # correct bp? works as is, btw
 def create_user():
     """FE logic will hit this endpoint and create a user in BE db"""
+    print('REGISTRATION MADE IT')
     request_body = request.get_json()
 
     if ("name" not in request_body) and ("email" not in request_body) and ("user_type" not in request_body) and ("username" not in request_body)\
@@ -145,6 +146,7 @@ def create_categories():
 @category_bp.route("", methods=["GET"]) # must be able to create them at '...com/food-categories'
 def view_categories():
     """Allow user to see categories"""
+    print("MADE IT THIS FAR!")
     hold_categories = []
     categories = Category.query.all()
 
@@ -263,7 +265,19 @@ def view_single_offering(category_id, offering_id):
 
 
 
+# NEED PUT REQUEST FOR UPPING DESIRED COUNT OF OFFERINGS FOR ORDER
+    # NEEDS TO MATCH THIS FE ENDPOINT PATH
+    # const upCountOffering = (selectedOfferingId) => {axios.put(`${process.env.REACT_APP_BACKEND_URL}/offerings/${selectedOfferingId}/upcount`)
 
+
+
+# have the user POST to single_offering route (but that doesnt know specific order ID), but w understanding that only 1 order is worked on at once
+# shopping carts aren't RESTFUL
+@category_bp.route("/<category_id>/offerings/<offering_id>", methods=["POST"])
+def create_order(category_id, offering_id):
+    request_body = request.get_json()
+    relevant_user = User.query.get()
+    new_order = OrderBox.build_order_from_json(request_body)
 
 # customer must be able to create/post an order w contents, delivery address, phone number
     # NOTE: how to link offs to order? commres POSTs off_ids by order? (a la 'farmer posts offering via category') like below

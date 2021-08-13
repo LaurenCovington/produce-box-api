@@ -16,6 +16,7 @@ from flask_jwt_extended import create_access_token # pip installed flask-jwt-ext
 from flask_jwt_extended import get_jwt_identity # all taken from docs: https://flask-jwt-extended.readthedocs.io/en/stable/basic_usage/
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -26,6 +27,9 @@ def create_app(test_config=None):
     app = Flask(__name__)
     # 1hr tut: set up JWT extension
     jwt = JWTManager(app)
+
+    # w chris addressing CORS issues
+    CORS(app)
     app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET")  # Change this! >> move to __init__ file later; add this var to .env
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
