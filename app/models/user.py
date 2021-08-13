@@ -45,10 +45,10 @@ class User(db.Model):
             # del_ct
             # add expected_deliveries to return statement?
         }
-    
+
     @classmethod
     def build_user_from_json(cls, body): # stuff the farmer is supposed to enter
-        new_user = User(name=body['name'], 
+        new_user = User(preferred_name=body['name'], 
                         email=body['email'],
                         user_type=body['user_type'],
                         username=body['username'], 

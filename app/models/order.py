@@ -23,6 +23,10 @@ class OrderBox(db.Model):
     # order needs to contain offerings so that commres can build and npo rep can view them...
     offering_id = db.Column(db.Integer, db.ForeignKey('offering_batch.offering_id')) # how to make sure it holds a list
 
+    # /!\ /!\
+    # needs this line instead of above if parent + running POST to 'orders/order_id/offerings'...
+    #chosen_foods = db.relationship('OfferingBatch', backref='assod_category', lazy=True) # was '...backref='category_id')'
+
     def json_formatted(self):
         return {
             "id": self.order_id,

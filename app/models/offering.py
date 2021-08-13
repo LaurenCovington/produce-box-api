@@ -24,7 +24,6 @@ class OfferingBatch(db.Model):
     dropoff_location = db.Column(db.String(200)) # selected via drop-down menu on FE
 
 # relationship handling below 
-
     # child in O2M w category
     category_id = db.Column(db.Integer, db.ForeignKey('category.category_id'))
 
@@ -56,8 +55,8 @@ class OfferingBatch(db.Model):
             "dropoff_location": self.dropoff_location,
             "usage_time_limit": self.usage_time_limit,
             "side_effects": self.side_effects,
-            "category_id": self.category_id,
-            "user_id": self.user_id
+            #"category_id": self.category_id,  >> running view_offerings() threw: TypeError: view_offerings() got an unexpected keyword argument 'category_id'
+            #"user_id": self.user_id >> ""
         }
 
     @classmethod

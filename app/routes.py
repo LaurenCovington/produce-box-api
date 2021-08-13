@@ -11,7 +11,7 @@ from app.models.category import Category
 from app.models.user import User ###############
 from app.models.offering_order import OfferingOrder ###############
 
-from flask import request, Blueprint, make_response, jsonify, Flask, current_app  
+from flask import json, request, Blueprint, make_response, jsonify, Flask, current_app  
 from datetime import datetime 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc, asc 
@@ -41,33 +41,22 @@ token_bp = Blueprint("token", __name__, url_prefix="/token") # pba.com/token
 
 # create acct endpoint: take in sign up info; if they hit 'farmer' instantiate that obj, etc; return completed new obj
 
-# create a token w 1hrtut
-@token_bp.route("", methods=["GET"]) # pba.com/token;;; was "POST"
+# created a token w 1hrtut
+# NOTE: WHY DO WE NEED LOGIN() AND CREATE_USER()? 1) CREATE TOKEN AND 2) RECORD TOKEN/ASSO'D ACCT ON BE, RESPECTIVELY?
+@token_bp.route("", methods=["POST"]) # pba.com/token;;; LJ at 9:23 PM says: 'sorry for the delay I took a dinner break and a dog walk…not sure what I  was  thinking, login will always be a POST since you’re creating a session id for the user when they login, logout would be a DELETE to remove the token/session' - 8.12.21
 def login():
     email = request.json.get("email", None) # was ("username",...)
     password = request.json.get("password", None)
 
-    if email != "test" or password != "test": # when testing the api, use these vals but know that you can change this logic at any time
-        return jsonify({"msg": "Bad email or password"}), 401
+    #if email != "test" or password != "test": # when testing the api, use these vals but know that you can change this logic at any time
+        #return jsonify({"msg": "Bad email or password"}), 401
     access_token = create_access_token(identity=email) # long unhackable value is created by c_a_t func and stored in access_token
     return jsonify(access_token=access_token)
 
 
-# /!\ DEMO NOTE: see how jwt required decorator prevents web pages from being seen unless the person's logged in!! put dec on real routes
-# tut guy used samed bp as login blueprint btw
-@token_bp.route("/hello", methods=["GET"]) # pba.com/hello
-@jwt_required
-def see_hello_inside_app():
-    email = get_jwt_identity # the 'Lauren' in 'Hi, Lauren!' when Lauren logs in; works off of line 53!
-    for_return = {
-        "message": "If you can see this, you're logged in! Welcome, " + email # min 1:12:00 in https://www.youtube.com/watch?v=8-W2O_R95Pk&t=4065s&ab_channel=BreatheCode
-    }
-    return jsonify(for_return)
-        
-        
-@user_bp.route("", methods=["POST"]) # correct bp?
+@user_bp.route("", methods=["POST"]) # correct bp? works as is, btw
 def create_user():
-    """FE logic to hit this endpoint and create a user in BE db"""
+    """FE logic will hit this endpoint and create a user in BE db"""
     request_body = request.get_json()
 
     if ("name" not in request_body) and ("email" not in request_body) and ("user_type" not in request_body) and ("username" not in request_body)\
@@ -166,33 +155,43 @@ def view_categories():
         hold_categories.append(category.json_formatted())
     return jsonify(hold_categories)
 
-# # update/edit a category
-# @category_bp.route("/<category_id>", methods=["PUT"]) 
-# def update_category(category_id):
-#     """Edit a category"""
+# user must be able to view one category (? or just leave to /food-categories/<cat_id>/offerings ?)
+@category_bp.route("/<category_id>", methods=["GET"]) # must be able to create them at '...com/food-categories'
+def view_category(category_id):
+    """Allow user to see a category"""
+    category = Category.query.get(category_id)
 
-#     category = Category.query.get(category_id)
+    if not category:
+        return make_response({"details": "No category by that ID"}, 404)
+    return jsonify(category.json_formatted())
 
-#     if not category:
-#         return make_response({"details": "No category by that ID"}, 404)
-#     request_body = request.get_json()
-#     category.category_title = request_body["category_title"]
+# update/edit a category
+@category_bp.route("/<category_id>", methods=["PUT"]) 
+def edit_category(category_id):
+    """Edit a category"""
+    category_id = int(category_id)
+    category = Category.query.get(category_id)
 
-#     db.session.commit()
-#     return {'category': category.json_formatted()}
+    if not category:
+        return make_response({"details": "No category by that ID"}, 404)
+    request_body = request.get_json()
+    category.category_title = request_body["category_title"]
 
-# # delete a category
-# @category_bp.route("/<category_id>", methods=["DELETE"]) 
-# def delete_category(category_id):
-#     """Delete a category"""
+    db.session.commit()
+    return {'category': category.json_formatted()}
 
-#     category = Category.query.get(category_id)
+# delete a category
+@category_bp.route("/<category_id>", methods=["DELETE"]) 
+def remove_category(category_id):
+    """Delete a category"""
 
-#     if not category:
-#         return make_response({"details": "No category by that ID"}, 404)
-#     db.session.delete(category)
-#     db.session.commit()
-#     return make_response({"details": f"Category '{category.category_title}' deleted."})
+    category = Category.query.get(category_id)
+
+    if not category:
+        return make_response({"details": "No category by that ID"}, 404)
+    db.session.delete(category)
+    db.session.commit()
+    return make_response({"details": f"Category '{category.category_title}' deleted."})
 
 # farmer must post offerings via category
 @category_bp.route("/<category_id>/offerings", methods=["POST"]) 
@@ -224,64 +223,73 @@ def post_offering_by_category(category_id):
 
 # user must be able to view offerings (by category only) /// see all herbs offered
 @category_bp.route("/<category_id>/offerings", methods=["GET"]) 
-def view_offerings():
+def view_offerings(category_id):
     """Allow user to see offerings"""
-    hold_offerings = []
-    offerings = OfferingBatch.query.all()
+    category = Category.query.get(category_id)
 
-    if not offerings:
-        return jsonify(hold_offerings)
-    
-    for offering in offerings:
-        hold_offerings.append(offering.json_formatted())
-    return jsonify(hold_offerings)
+    if category is None:
+        return make_response({"details": "Invalid ID"}, 404)
 
+    offering_list = []
 
-# ???? user must be able to view single offerings (by category only) /// click carrot bach # 1 
+    try:
+        for offering in category.associated_foods: 
+            offering = offering.json_formatted()
+            offering_list.append(offering)
+    except: 
+        return make_response({"details": "There are no offerings under this category. "})
+    return jsonify(offering_list)
+
+# needed?? user must be able to view single offerings (by category only) /// click carrot batch # 1 
 @category_bp.route("/<category_id>/offerings/<offering_id>", methods=["GET"]) 
-def view_single_offering(offering_id):
+def view_single_offering(category_id, offering_id):
     """Allow user to see a specific offering batch"""
-    offering = OfferingBatch.query.get(offering_id)
+    pre_final = []
 
-    if not offering:
-        return make_response({"details": "No offering by that ID."}, 404)
-    return {'offering': offering.json_formatted()}, 201 
-
-
-# update/edit a category
-@category_bp.route("/<category_id>", methods=["PUT"]) 
-def update_category(category_id):
-    """Edit a category"""
-
+    offering_id = int(offering_id)
     category = Category.query.get(category_id)
 
-    if not category:
-        return make_response({"details": "No category by that ID"}, 404)
-    
-    request_body = request.get_json()
-    category.category_title = request_body["category_title"]
+    if category is None:
+        return make_response({"details": "Invalid ID"}, 404)
 
-    db.session.commit()
-    return {'category': category.json_formatted()}
+    for offering in category.associated_foods: # for every obj in list of objs: 
+        offering = offering.json_formatted() # create accessible dict
+        pre_final.append(offering['id']) # pull 'id' value out of each dict + append to list 
 
-# delete a category
-@category_bp.route("/<category_id>", methods=["DELETE"]) 
-def delete_category(category_id):
-    """Delete a category"""
+    for i in range(0, len(pre_final)): # in whole list
+        if pre_final[i] == offering_id: # check value against given offering id
+            relevant = OfferingBatch.query.get(offering_id) # build back the matching offering
+    return jsonify(relevant.json_formatted()) # return that in proper format
 
-    category = Category.query.get(category_id)
-
-    if not category:
-        return make_response({"details": "No category by that ID"}, 404)
-    
-    db.session.delete(category)
-    db.session.commit()
-    return make_response({"details": f"Category '{category.category_title}' deleted."})
 
 
 
 
 # customer must be able to create/post an order w contents, delivery address, phone number
+    # NOTE: how to link offs to order? commres POSTs off_ids by order? (a la 'farmer posts offering via category') like below
+    # @order_bp.route("/<order_id>/offerings", methods=["POST"]
+    # def post_offerings_to_order(order_id):
+    # """Allow community residents to create orders of desired offerings"""
+
+    # order_id = int(order_id)
+    # relevant_order = Order.query.get(order_id)
+    # hold_offering_ids = [] # unnecesary line..?
+
+    # request_body = request.get_json() >>> what's in here at this point? what does FE form look like?
+    # chosen_offering = OfferingBatch.build_offering_from_json(request_body)
+    
+    # if not chosen_offering:
+    #     return make_response({"details": "Invalid Data"}, 400)
+    # db.session.add(chosen_offering) 
+
+    # # link to order
+    # relevant_order.chosen_foods.append(chosen_offering) /!\ SEE LINE 28 IN ORDER.PY!!!!!!!!
+    
+    # for offering in relevant_order.chosen_foods: # unnecesary 'stanza'..?
+    #     hold_offering_ids.append(offering.offering_id)   >>> CORRECT?
+    # db.session.commit()
+    # return {'order': relevant_order.json_formatted()}, 201 >>> CORRECT?
+
 @order_bp.route("", methods=["POST"]) # must be created at '...com/orders'
 def create_order():
     """Community resident must be able to create an order that holds contents, delivery address and recipient phone number"""
