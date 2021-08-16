@@ -14,5 +14,5 @@ class Category(db.Model):
     def json_formatted(self):
         return {
             "id": self.category_id, 
-            "category": self.category_title
+            "category_title": self.category_title
         }

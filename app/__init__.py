@@ -28,8 +28,6 @@ def create_app(test_config=None):
     # 1hr tut: set up JWT extension
     jwt = JWTManager(app)
 
-    # w chris addressing CORS issues
-    CORS(app)
     app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET")  # Change this! >> move to __init__ file later; add this var to .env
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -42,24 +40,18 @@ def create_app(test_config=None):
             "SQLALCHEMY_TEST_DATABASE_URI")
 
     # Import models here for Alembic setup
-    #from app.models.comm_res import CommRes   >>>> commented out 8.10.21 to make room for User
-    #from app.models.farmer import Farmer   >>>> ""
-    #from app.models.npo_rep import NpoRep  >>>> ""
     from app.models.offering import OfferingBatch
     from app.models.order import OrderBox
     from app.models.category import Category
     from app.models.user import User
     from app.models.offering_order import OfferingOrder
 
-    #from .routes import comm_res_bp
-    #from .routes import farmer_bp
-    #from .routes import npo_rep_bp
     from .routes import offering_bp
     from .routes import order_bp
     from .routes import category_bp
     from .routes import user_bp
     from .routes import offering_order_bp
-    from .routes import token_bp ################ for tut
+    from .routes import token_bp ################ for authtut
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -69,8 +61,9 @@ def create_app(test_config=None):
     app.register_blueprint(category_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(offering_order_bp)
-    app.register_blueprint(token_bp) ################### for tut
+    app.register_blueprint(token_bp) ################### for authtut
 
+    CORS(app)
     return app
 
 
@@ -95,3 +88,4 @@ def create_app(test_config=None):
         #     userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',  # This is only needed if using openId to fetch user info
         #     client_kwargs={'scope': 'openid email profile'}, # check IG docs for different scope params
         # )
+# chris says above looks right; present simulated login on front end + present other functionalities - 8/14/21

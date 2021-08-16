@@ -10,7 +10,7 @@ class OfferingBatch(db.Model):
     name = db.Column(db.String(100))
     total_inventory = db.Column(db.Integer) # only farmers can affect this
     available_inventory = db.Column(db.Integer, default=total_inventory) # only commres can affect this
-    usda_organic = db.Column(db.Boolean, default=False) # flip to true if farmer hits the button
+    usda_organic = db.Column(db.String()) # turning to str bc time; if there's more time later, turn back to 'bool' and flip to true if farmer hits the button
     usage_time_limit = db.Column(db.Integer, nullable=True) # how many weeks a comfrey salve can be used
     side_effects = db.Column(db.String(300), nullable=True) # let herbalists list side effects
 

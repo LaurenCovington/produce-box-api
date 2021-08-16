@@ -63,6 +63,7 @@ def create_user():
     if ("name" not in request_body) and ("email" not in request_body) and ("user_type" not in request_body) and ("username" not in request_body)\
         ("password" not in request_body) and ("address" not in request_body) and ("phone" not in request_body):
         return make_response({"details": "Enter valid data for all fields"}, 400) # msg should be more specific 
+    print('whats in req_body?: ', request_body)
     new_user = User.build_user_from_json(request_body)
     db.session.add(new_user)
     db.session.commit()
@@ -133,6 +134,7 @@ def create_user():
 def create_categories():
     """Allow first user to create relevant categories"""
     request_body = request.get_json()
+    print("Whats coming in from FE? ", request_body) # coming from the FE: {'title': 'Produce'} now {'category_title': 'Produce'}
 
     if "category_title" not in request_body:
         return make_response({"details": "Enter valid category name"}, 400)
@@ -155,6 +157,7 @@ def view_categories():
     
     for category in categories:
         hold_categories.append(category.json_formatted())
+    print('BE info heading to FE: ', hold_categories)
     return jsonify(hold_categories)
 
 # user must be able to view one category (? or just leave to /food-categories/<cat_id>/offerings ?)
@@ -211,7 +214,7 @@ def post_offering_by_category(category_id):
         return make_response({"details": "Invalid Data"}, 400)
     if len(new_offering.name) <= 1:
         return make_response({"details": "Enter valid name."}, 400)
-    if new_offering.total_inventory < 1:
+    if int(new_offering.total_inventory) < 1:
         return make_response({"details": "Must enter at least 1 batch of food."}, 400)
     db.session.add(new_offering) 
 
